@@ -1,9 +1,10 @@
 import flet as ft
 import requests
 
+from settings.env import API
+
 
 def main(page: ft.Page):
-    API = 'faffcba6653d0e42a641ceeff885620f'
     page.theme_mode = 'dark'
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.title = 'Погодная приложуха'
