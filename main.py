@@ -24,7 +24,7 @@ def main(page: ft.Page):
         cur = db.cursor()
         cur.execute("""CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, login TEXT, password TEXT)""")
 
-        cur.execute("SELECT * FROM users WHERE login=?", (login_field.value))
+        cur.execute("SELECT * FROM users WHERE login=?", (login_field.value,))
         user = cur.fetchone()
 
         if user:
@@ -55,7 +55,10 @@ def main(page: ft.Page):
             page.bottom_appbar = ft.SnackBar(ft.Text('This Login is not exist'))
             page.bottom_appbar.open = True
         else:
-            print(user[1])
+            page.navigation_bar.destinations.append(
+                ft.NavigationBarDestination(ft.icons.Icons.MAN, label='Main Page'),
+            )
+            page.navigation_bar.destinations[1].disabled = True
 
         db.close()
         page.update()
@@ -64,6 +67,7 @@ def main(page: ft.Page):
     pass_field = ft.TextField('', label='Password', border_color='#bbbbbb', on_change=validate, password=True)
     btn_reg = ft.OutlinedButton('Register', width=300, height=50, on_click=register, disabled=True)
     btn_auth = ft.OutlinedButton('Login', width=300, height=50, on_click=authorization, disabled=True)
+    users_list = ft.ListView(spacing=10, padding=20)
 
     panel_register = [
         ft.Row(
@@ -85,12 +89,36 @@ def main(page: ft.Page):
         ),
     ]
 
+    panel_lk = [
+        ft.Row(
+            [ft.Text('Main Page', size=24, color='#ff7700')], alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        ft.Row(
+            [ft.Column([
+                users_list,
+            ])], alignment=ft.MainAxisAlignment.CENTER,
+        ),
+    ]
+
     def navigate(e):
         idx = page.navigation_bar.selected_index
         page.clean()
 
         if idx == 1:
             page.add(*panel_auth)
+        elif idx == 2:
+            users_list.controls.clear()
+            db = sqlite3.connect('db.sqlite')
+            cur = db.cursor()
+            cur.execute("SELECT * FROM users")
+            users = cur.fetchall()
+            db.close()
+            for i in users:
+                users_list.controls.append(ft.Row([
+                    ft.Icon(ft.Icons.FACE),
+                    ft.Text(i[1]),
+                ]))
+            page.add(*panel_lk)
         else:
             page.add(*panel_register)
         page.update()
